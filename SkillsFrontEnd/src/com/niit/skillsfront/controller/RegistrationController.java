@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -12,8 +14,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.niit.skillsbackend.config.EmployeeUtility;
-import com.niit.skillsbackend.repository.EmpRepo;
+import com.niit.skillmap.model.Employee;
+import com.niit.skillmap.repository.EmployeeRepository;
+
 
 /**
  * Servlet implementation class RegistrationController
@@ -21,8 +24,10 @@ import com.niit.skillsbackend.repository.EmpRepo;
 @WebServlet("/Registration")
 public class RegistrationController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	EmpRepo emp;
 	
+	EmployeeRepository emp;
+	List<String> errorList=new ArrayList<>();
+	Employee employee;
 	public RegistrationController() {
 		
 	}
@@ -38,12 +43,13 @@ public class RegistrationController extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		PrintWriter out=response.getWriter();
+		
 		//request.getRequestDispatcher(getServletContext().getInitParameter("views")+"Registration.jsp").forward(request, response);	
 		String empId=request.getParameter("empId");
 		String empName=request.getParameter("empName");
 		String empAddress=request.getParameter("empAddress");
 		String empPh=request.getParameter("empPh");
-		//System.out.println("EmpID "+str1);
+		
 		String empEmail=request.getParameter("empEmail");
 		String empQual=request.getParameter("empQual");
 		String empIBU=request.getParameter("empIBU");
@@ -52,30 +58,33 @@ public class RegistrationController extends HttpServlet {
 		String students=request.getParameter("students");
 		String empPassword=request.getParameter("empPassword");
 		String empCPassword=request.getParameter("empCPassword");
+		String emp_role=request.getParameter("role");
+		String status="Not Approved";
 		
-		System.out.println(empId+" "+ empName+" , "+ empAddress+", "+ empPh+ ","+ empEmail+ ", "+ empQual+ ","+ empIBU+ ","+ empCenter+","+ empDesig+","+ students +","+ empPassword);
+		System.out.println(empId+" "+ empName+" , "+ empAddress+", "+ empPh+ ","+ empEmail+ ", "+ empQual+ ","+ empIBU+ ","+ empCenter+","+ empDesig+","+ students +","+ empPassword+" "+emp_role+" "+status);
 		int i=-1;
 		try {
-			
-			emp=new EmpRepo(empId, empName, empAddress, empPh, empEmail, empQual, empIBU, empCenter, empDesig, students, empPassword);
-			try {
-				i=emp.insertRecords(empId, empName, empAddress, empPh, empEmail, empQual, empIBU, empCenter, empDesig, students, empPassword);
-				if(i>0)
-				{
-					System.out.println("Inserted");
-					RequestDispatcher rd=request.getRequestDispatcher("/WEB-INF/views/login.jsp");
-					rd.include(request, response);
-					
-				}
-				else
-				{
-					System.out.println("Not inserted");
-				}
-			} catch (ClassNotFoundException  e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			employee=new Employee();
+			emp=new EmployeeRepository(empId, empName, empAddress, empPh, empEmail, empQual, empIBU, empCenter, empDesig, students, empPassword,emp_role,status);
+			i=emp.insertEmp();
+			errorList=employee.getMap();
+			if(i>0)
+			{
+				System.out.println("Inserted");
+				RequestDispatcher rd=request.getRequestDispatcher("/WEB-INF/views/login.jsp");
+				rd.include(request, response);
+				
 			}
-		} catch (SQLException | ParseException e) {
+			else
+			{
+				request.setAttribute("error", errorList);
+				request.setAttribute("employee", employee);
+
+				RequestDispatcher rd=request.getRequestDispatcher("/WEB-INF/views/Registration.jsp");
+				rd.forward(request, response);
+				System.out.println("Not inserted");
+			}
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
