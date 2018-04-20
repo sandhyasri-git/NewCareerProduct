@@ -212,7 +212,11 @@ public class Employee {
         return (m.find() && m.group().equals(s));
     }
  
-	
+	public List<String> getMap()
+	{
+		return errorMap;
+	}
+
 	
 	
 
